@@ -3,7 +3,7 @@
 A shared loyalty wallet for Fiji. Earn points at any participating shop with one QR code, redeem at any member shop. See `CLAUDE.md` for the full brief and scope.
 
 ## Status
-Steps 1-4 done: schema and RLS, phone OTP login, the transactions engine, and the merchant till app (scan or type customer, enter sale, confirm, redeem a code). Staff accounts open the till; everyone else sees the customer profile.
+Steps 1-5 done: schema and RLS, phone OTP login, the transactions engine, the merchant till app, and the customer app (home with QR, deals by category and distance, shop pages, redeem codes, history). Staff accounts open the till; everyone else sees the customer app.
 
 ## Layout
 - `app/` Expo (React Native) app: phone + OTP login, profile with points balance. `cd app && npm install && npm test && npm run typecheck`

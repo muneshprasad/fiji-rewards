@@ -8,7 +8,7 @@ import {
 } from '@expo-google-fonts/plus-jakarta-sans';
 import PhoneScreen from './src/screens/PhoneScreen';
 import OtpScreen from './src/screens/OtpScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import CustomerApp from './src/customer/CustomerApp';
 import TillApp from './src/till/TillApp';
 import { fetchStaff, StaffInfo } from './src/till/api';
 import { isConfigured, supabase } from './src/lib/supabase';
@@ -52,7 +52,7 @@ export default function App() {
   return (
     <>
       <StatusBar style="dark" />
-      {session ? (staff ? <TillApp staff={staff} /> : <ProfileScreen userId={session.user.id} />)
+      {session ? (staff ? <TillApp staff={staff} /> : <CustomerApp userId={session.user.id} />)
         : pendingPhone ? <OtpScreen phone={pendingPhone} onBack={() => setPendingPhone(null)} />
         : <PhoneScreen onSent={setPendingPhone} />}
     </>

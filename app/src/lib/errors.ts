@@ -11,7 +11,11 @@ const MESSAGES: Record<string, string> = {
   client_txn_id_conflict: 'This sale ID was already used for something else. Start again.',
   code_not_found_or_used: 'Code not found, or already used.',
   code_expired: 'This code has expired. Ask the customer for a new one.',
-  insufficient_points: 'The customer does not have enough points.',
+  insufficient_points: 'Not enough points for this.',
+  daily_limit_reached: 'This reward is fully claimed for today. Try again tomorrow.',
+  reward_not_active: 'This reward is not available right now.',
+  reward_not_found: 'This reward is no longer available.',
+  merchant_inactive: 'This shop is not taking part right now.',
 };
 
 export function friendlyError(err: { message?: string } | null | undefined, offline = false): string {
