@@ -6,7 +6,9 @@ import { MAX_SCANS_PER_HOUR } from '../lib/queue';
 import { formatFijiPhone, normalizeFijiPhone } from '../lib/phone';
 import { supabase } from '../lib/supabase';
 import { colors, fonts } from '../theme';
-import { CustomerInfo, earn, EarnResult, lookupCustomer, newTxnId, redeem, RedeemResult, StaffInfo } from './api';
+import { CustomerInfo, earn, EarnResult, lookupCustomer, newTxnId, QrProof, redeem, RedeemResult, StaffInfo } from './api';
+import { serverNow } from '../lib/clock';
+import { syncClock } from '../lib/clockSync';
 import ScanScreen from './ScanScreen';
 import QueueScreen from './QueueScreen';
 import { RewardsScreen, TodayScreen } from './ManageScreens';
@@ -16,7 +18,7 @@ type View_ =
   | { name: 'home' }
   | { name: 'scan-customer' } | { name: 'type-customer' }
   | { name: 'scan-code' } | { name: 'type-code' }
-  | { name: 'sale'; customer: CustomerInfo; offline?: boolean }
+  | { name: 'sale'; customer: CustomerInfo; offline?: boolean; qr?: QrProof }
   | { name: 'earned'; customer: CustomerInfo; amount: number; result: EarnResult }
   | { name: 'queued'; label: string; amount: number; estimate: number }
   | { name: 'queue' }
@@ -32,25 +34,26 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
   // Load saved sales on start, then try to send them on start, on return to the app, and every 30 seconds while any wait.
   useEffect(() => {
     let alive = true;
+    syncClock();
     saleQueue.load().then(() => { if (alive) syncNow(); });
     const sub = AppState.addEventListener('change', (st) => { if (st === 'active') syncNow(); });
     const timer = setInterval(() => { if (saleQueue.pendingCount() > 0) syncNow(); }, 30000);
     return () => { alive = false; sub.remove(); clearInterval(timer); };
   }, []);
 
-  async function findCustomer(by: { customerId?: string; phone?: string }) {
+  async function findCustomer(by: { customerId?: string; phone?: string; qr?: QrProof }) {
     const r = await lookupCustomer(by);
-    if (!r.ok && r.offline && by.customerId) {
+    if (!r.ok && r.offline && by.customerId && by.qr) {
       // No signal, but the QR already tells us who this is: carry on and save the sale on this phone.
       setNotice(null);
-      setView({ name: 'sale', offline: true, customer: { customer_id: by.customerId, name: null, phone: '', balance: null } });
+      setView({ name: 'sale', offline: true, qr: by.qr, customer: { customer_id: by.customerId, name: null, phone: '', balance: null } });
       return;
     }
     if (!r.ok) {
       setNotice(r.offline ? 'No signal. Scan the customer\'s QR code instead, because typed numbers need a connection.' : r.message);
       setView({ name: 'home' }); return;
     }
-    setNotice(null); setView({ name: 'sale', customer: r.data });
+    setNotice(null); setView({ name: 'sale', customer: r.data, qr: by.qr });
   }
   async function useCode(code: string) {
     const r = await redeem(code, newTxnId(), null);
@@ -61,7 +64,7 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
   switch (view.name) {
     case 'scan-customer':
       return <ScanScreen title="Scan the customer's QR code" want="customer"
-        onScan={(sc) => sc.kind === 'customer' && findCustomer({ customerId: sc.customerId })}
+        onScan={(sc) => sc.kind === 'customer' && findCustomer({ customerId: sc.customerId, qr: { ts: sc.ts, sig: sc.sig } })}
         onTypeInstead={() => setView({ name: 'type-customer' })} onCancel={home} />;
     case 'scan-code':
       return <ScanScreen title="Scan the redemption QR code" want="redeem"
@@ -72,7 +75,7 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
     case 'type-code':
       return <TypeCode onSubmit={useCode} onCancel={home} />;
     case 'sale':
-      return <Sale staff={staff} customer={view.customer} offline={view.offline} onCancel={home}
+      return <Sale staff={staff} customer={view.customer} offline={view.offline} qr={view.qr} onCancel={home}
         onDone={(amount, result) => setView({ name: 'earned', customer: view.customer, amount, result })}
         onQueued={(label, amount, estimate) => setView({ name: 'queued', label, amount, estimate })} />;
     case 'queued':
@@ -164,8 +167,8 @@ function TypeCode({ onSubmit, onCancel }: { onSubmit: (code: string) => Promise<
   );
 }
 
-function Sale({ staff, customer, offline, onDone, onQueued, onCancel }: {
-  staff: StaffInfo; customer: CustomerInfo; offline?: boolean; onDone: (amount: number, r: EarnResult) => void;
+function Sale({ staff, customer, offline, qr, onDone, onQueued, onCancel }: {
+  staff: StaffInfo; customer: CustomerInfo; offline?: boolean; qr?: QrProof; onDone: (amount: number, r: EarnResult) => void;
   onQueued: (label: string, amount: number, estimate: number) => void; onCancel: () => void;
 }) {
   const label = customer.name ?? (customer.phone ? formatFijiPhone(customer.phone) : `Customer …${customer.customer_id.slice(-4)}`);
@@ -185,15 +188,15 @@ function Sale({ staff, customer, offline, onDone, onQueued, onCancel }: {
       <Button title="Confirm sale" loading={busy} disabled={!amount} onPress={async () => {
         if (!amount) return;
         setErr(null); setBusy(true);
-        const occurredAt = new Date().toISOString();
-        const r = await earn(customer.customer_id, amount, txnId, await getDeviceId());
+        const occurredAt = new Date(serverNow()).toISOString();
+        const r = await earn(customer.customer_id, amount, txnId, await getDeviceId(), undefined, qr);
         if (r.ok) { setBusy(false); onDone(amount, r.data); syncNow(); return; }
         if (!r.offline) { setBusy(false); setErr(r.message); return; }
         // No signal (or the reply was lost): keep the sale on the phone under the same id, so it can never be counted twice.
         if (saleQueue.recentFor(customer.customer_id) >= MAX_SCANS_PER_HOUR) {
           setBusy(false); setErr('This customer has already had several sales queued this hour.'); return;
         }
-        const added = await saleQueue.add({ id: txnId, customerId: customer.customer_id, customerLabel: label, amount, occurredAt });
+        const added = await saleQueue.add({ id: txnId, customerId: customer.customer_id, customerLabel: label, amount, occurredAt, qrTs: qr?.ts, qrSig: qr?.sig });
         setBusy(false);
         if (added === 'full') { setErr('Too many unsent sales on this phone. Get a signal and send them first.'); return; }
         onQueued(label, amount, pointsFor(amount, staff.merchant.points_per_fjd));

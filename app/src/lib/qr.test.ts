@@ -6,13 +6,15 @@ import { friendlyError, isNetworkError } from './errors.ts';
 
 const ID = '3f2b8c1e-9d4a-4e7b-8a6f-1c2d3e4f5a6b';
 
+const SIG = 'be3670a6d83c2f531193';
+
 test('qr round trip', () => {
-  assert.deepEqual(parseScan(customerQr(ID)), { kind: 'customer', customerId: ID });
+  assert.deepEqual(parseScan(customerQr(ID, 1790000000, SIG)), { kind: 'customer', customerId: ID, ts: 1790000000, sig: SIG });
   assert.deepEqual(parseScan(redeemQr('123456')), { kind: 'redeem', code: '123456' });
 });
 
 test('qr rejects other content', () => {
-  for (const s of ['', 'hello', 'https://example.com', 'fjr:c:not-a-uuid', 'fjr:r:12345', 'fjr:r:1234567', 'fjr:x:' + ID]) {
+  for (const s of ['', 'hello', 'https://example.com', 'fjr:c:not-a-uuid', 'fjr:c:' + ID, `fjr:c:${ID}:1790000000`, `fjr:c:${ID}:1790000000:short`, `fjr:c:${ID}:abc:${SIG}`, 'fjr:r:12345', 'fjr:r:1234567', 'fjr:x:' + ID]) {
     assert.equal(parseScan(s), null, s);
   }
 });

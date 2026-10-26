@@ -4,6 +4,7 @@
   "main": "index.ts",
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@noble/hashes": "^2.4.0",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@supabase/supabase-js": "^2.118.0",
     "expo": "~58.0.19",
@@ -11,6 +12,7 @@
     "expo-crypto": "~58.0.7",
     "expo-font": "~58.0.10",
     "expo-location": "^58.0.19",
+    "expo-secure-store": "^58.0.2",
     "expo-splash-screen": "~58.0.11",
     "expo-status-bar": "~58.0.4",
     "qrcode-generator": "^2.0.4",

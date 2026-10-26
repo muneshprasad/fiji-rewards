@@ -3,7 +3,7 @@
 A shared loyalty wallet for Fiji. Earn points at any participating shop with one QR code, redeem at any member shop. See `CLAUDE.md` for the full brief and scope.
 
 ## Status
-Steps 1-7 done: schema and RLS, phone OTP login, the transactions engine, the merchant till app, the customer app, and the offline queue at the till (earn sales saved on the phone and sent when the signal returns; redemptions need a connection). Staff accounts open the till; everyone else sees the customer app. Managers also get a Today screen and rewards and points-rate setup.
+Steps 1-8 done: schema and RLS, phone OTP login, the transactions engine, the merchant till app, the customer app, and the offline queue at the till (earn sales saved on the phone and sent when the signal returns; redemptions need a connection). Staff accounts open the till; everyone else sees the customer app. Managers also get a Today screen and rewards and points-rate setup. Fraud controls: signed QR codes that renew every 20 seconds and work once, extra daily and hourly limits, alerts for odd patterns, and admin actions to suspend a customer or shop. Scheduled jobs are in `supabase/schedule.sql`.
 
 ## Layout
 - `app/` Expo (React Native) app: phone + OTP login, profile with points balance. `cd app && npm install && npm test && npm run typecheck`

@@ -34,9 +34,12 @@ export async function fetchStaff(userId: string): Promise<StaffInfo | null> {
   return { id: data.id, name: data.name, role: data.role, merchant: { ...m, points_per_fjd: Number(m.points_per_fjd) } };
 }
 
-export async function lookupCustomer(by: { customerId?: string; phone?: string }): Promise<Outcome<CustomerInfo>> {
+export type QrProof = { ts: number; sig: string };
+
+export async function lookupCustomer(by: { customerId?: string; phone?: string; qr?: QrProof }): Promise<Outcome<CustomerInfo>> {
   const { data, error } = await supabase.rpc('lookup_customer', {
     p_customer_id: by.customerId ?? null, p_phone: by.phone ?? null,
+    p_qr_ts: by.qr?.ts ?? null, p_qr_sig: by.qr?.sig ?? null,
   }).abortSignal(timeout());
   if (error) return fail(error);
   const row = Array.isArray(data) ? data[0] : data;
@@ -44,11 +47,12 @@ export async function lookupCustomer(by: { customerId?: string; phone?: string }
 }
 
 export async function earn(
-  customerId: string, amount: number, txnId: string, deviceId: string | null, occurredAt?: string,
+  customerId: string, amount: number, txnId: string, deviceId: string | null, occurredAt?: string, qr?: QrProof,
 ): Promise<Outcome<EarnResult>> {
   const { data, error } = await supabase.rpc('record_earn', {
     p_customer_id: customerId, p_amount_fjd: amount, p_client_txn_id: txnId, p_device_id: deviceId,
     ...(occurredAt ? { p_occurred_at: occurredAt } : {}),
+    ...(qr ? { p_qr_ts: qr.ts, p_qr_sig: qr.sig } : {}),
   }).abortSignal(timeout());
   if (error) return fail(error);
   return { ok: true, data: (Array.isArray(data) ? data[0] : data) as EarnResult };

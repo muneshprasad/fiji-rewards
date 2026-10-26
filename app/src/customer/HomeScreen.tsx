@@ -1,14 +1,15 @@
 import React from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import QRCode from '../components/QRCode';
+import LiveQr from '../components/LiveQr';
 import { Button } from '../components/ui';
-import { customerQr } from '../lib/qr';
+import { syncClock } from '../lib/clockSync';
 import { colors, fonts } from '../theme';
 
 export default function HomeScreen({ userId, balance, onRefresh, onDeals }: {
   userId: string; balance: number | null; onRefresh: () => Promise<void>; onDeals: () => void;
 }) {
   const [refreshing, setRefreshing] = React.useState(false);
+  React.useEffect(() => { syncClock(); }, []);
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={s.wrap}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await onRefresh(); setRefreshing(false); }} />}>
@@ -17,8 +18,8 @@ export default function HomeScreen({ userId, balance, onRefresh, onDeals }: {
         <Text style={s.points} accessibilityLabel={`${balance ?? 0} points`}>{balance ?? '–'}</Text>
       </View>
       <View style={s.qrCard}>
-        <QRCode value={customerQr(userId)} size={240} />
-        <Text style={s.hint}>Show this code at the till to earn points.</Text>
+        <LiveQr userId={userId} size={240} />
+        <Text style={s.hint}>Show this code at the till to earn points. It renews itself every few seconds, so a screenshot will not work.</Text>
       </View>
       <Button title="Browse deals" onPress={onDeals} />
     </ScrollView>

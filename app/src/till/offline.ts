@@ -19,7 +19,8 @@ export async function getDeviceId(): Promise<string> {
 }
 
 async function send(sale: QueuedSale): Promise<SendResult> {
-  const r = await earn(sale.customerId, sale.amount, sale.id, await getDeviceId(), sale.occurredAt);
+  const r = await earn(sale.customerId, sale.amount, sale.id, await getDeviceId(), sale.occurredAt,
+    sale.qrTs !== undefined && sale.qrSig ? { ts: sale.qrTs, sig: sale.qrSig } : undefined);
   return r.ok ? { ok: true } : { ok: false, offline: r.offline, message: r.message };
 }
 

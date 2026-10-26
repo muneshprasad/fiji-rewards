@@ -4,13 +4,15 @@ import type { Deal } from '../lib/deals';
 import ProfileScreen from '../screens/ProfileScreen';
 import { colors, fonts, MIN_TOUCH } from '../theme';
 import { fetchBalance } from './api';
+import AdminScreen from '../admin/AdminScreen';
+import { amAdmin } from '../admin/api';
 import DealsScreen from './DealsScreen';
 import HistoryScreen from './HistoryScreen';
 import HomeScreen from './HomeScreen';
 import MerchantScreen from './MerchantScreen';
 import RedeemScreen from './RedeemScreen';
 
-type Tab = 'home' | 'deals' | 'history' | 'account';
+type Tab = 'home' | 'deals' | 'history' | 'account' | 'alerts';
 const TABS: { key: Tab; label: string }[] = [
   { key: 'home', label: 'Home' }, { key: 'deals', label: 'Deals' }, { key: 'history', label: 'History' }, { key: 'account', label: 'Account' },
 ];
@@ -20,6 +22,8 @@ export default function CustomerApp({ userId }: { userId: string }) {
   const [deal, setDeal] = useState<Deal | null>(null);
   const [rewardId, setRewardId] = useState<string | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
+  const [admin, setAdmin] = useState(false);
+  useEffect(() => { amAdmin().then(setAdmin); }, []);
 
   const refresh = useCallback(async () => { setBalance(await fetchBalance(userId)); }, [userId]);
   useEffect(() => { refresh(); }, [refresh, tab]);
@@ -35,9 +39,10 @@ export default function CustomerApp({ userId }: { userId: string }) {
         {tab === 'deals' && <DealsScreen onOpen={setDeal} />}
         {tab === 'history' && <HistoryScreen userId={userId} />}
         {tab === 'account' && <ProfileScreen userId={userId} />}
+        {tab === 'alerts' && <AdminScreen />}
       </View>
       <View style={s.bar} accessibilityRole="tablist">
-        {TABS.map((t) => (
+        {(admin ? [...TABS, { key: 'alerts' as Tab, label: 'Alerts' }] : TABS).map((t) => (
           <Pressable key={t.key} onPress={() => setTab(t.key)} accessibilityRole="tab" accessibilityState={{ selected: tab === t.key }} style={s.tab}>
             <Text style={[s.label, tab === t.key && s.on]}>{t.label}</Text>
           </Pressable>

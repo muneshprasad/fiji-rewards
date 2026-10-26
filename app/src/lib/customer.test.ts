@@ -6,6 +6,8 @@ import type { MerchantRow } from './deals.ts';
 import { describeTxn, fijiDate, countdown } from './history.ts';
 import { qrMatrix } from './qrMatrix.ts';
 import { customerQr } from './qr.ts';
+import { signQr } from './qrSign.ts';
+import { offsetFromReading, setClockOffset, serverNow } from './clock.ts';
 
 const NOW = new Date('2026-10-26T00:00:00Z');
 const rw = (id: string, cost: number, from = '2026-01-01T00:00:00Z', to: string | null = null) =>
@@ -56,8 +58,23 @@ test('Fiji dates and countdown', () => {
 });
 
 test('qr matrix is a square grid with finder patterns', () => {
-  const g = qrMatrix(customerQr('3f2b8c1e-9d4a-4e7b-8a6f-1c2d3e4f5a6b'));
+  const g = qrMatrix(customerQr('3f2b8c1e-9d4a-4e7b-8a6f-1c2d3e4f5a6b', 1790000000, 'be3670a6d83c2f531193'));
   assert.ok(g.length >= 25 && g.length <= 45, String(g.length));
   assert.ok(g.every((row) => row.length === g.length));
   assert.ok(g[0][0] && g[0][6] && g[6][0] && g[6][6], 'top-left finder corners are dark');
+});
+
+test('QR signature matches the one the database computes', () => {
+  // The expected value was produced by Postgres: hmac('<id>:<ts>', decode(repeat('ab',32),'hex'), 'sha256'), first 20 hex characters.
+  const secret = 'ab'.repeat(32);
+  assert.equal(signQr(secret, '3f2b8c1e-9d4a-4e7b-8a6f-1c2d3e4f5a6b', 1790000000), 'be3670a6d83c2f531193');
+  assert.notEqual(signQr(secret, '3f2b8c1e-9d4a-4e7b-8a6f-1c2d3e4f5a6b', 1790000001), 'be3670a6d83c2f531193');
+});
+
+test('clock offset', () => {
+  assert.equal(offsetFromReading(10_000, 1_000, 1_200), 10_000 - 1_100);
+  setClockOffset(5000);
+  assert.ok(Math.abs(serverNow() - (Date.now() + 5000)) < 50);
+  setClockOffset(Number.NaN);
+  assert.ok(Math.abs(serverNow() - Date.now()) < 50);
 });

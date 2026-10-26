@@ -86,7 +86,8 @@ begin
   ---------------------------------------------------------------- lookup
   select * into r from lookup_customer(p_phone => '+6797400001');
   assert r.customer_id = cu1 and r.balance = 70, 'lookup by phone';
-  assert pg_temp.fails_with($q$select * from lookup_customer('$q$ || gen_random_uuid() || $q$')$q$, 'customer_not_found');
+  assert pg_temp.fails_with($q$select * from lookup_customer('$q$ || gen_random_uuid() || $q$')$q$, 'qr_required'), 'a bare customer id is not enough';
+  assert pg_temp.fails_with($q$select * from lookup_customer(null, '+6797999999')$q$, 'customer_not_found');
   perform pg_temp.as_user(cu1);
   assert pg_temp.fails_with($q$select * from lookup_customer(null, '+6797400001')$q$, 'not_staff');
 

@@ -8,6 +8,8 @@ export type QueuedSale = {
   customerLabel: string;
   amount: number;
   occurredAt: string;         // ISO time of the sale, so points and expiry date from the real sale time
+  qrTs?: number;              // the customer's signed QR (time and signature), checked by the server when the sale is sent
+  qrSig?: string;
   status: 'pending' | 'rejected';
   attempts: number;
   lastError?: string;
