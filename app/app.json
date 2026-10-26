@@ -18,7 +18,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.fijirewards.app"
+      "package": "com.fijirewards.app",
+      "permissions": [
+        "CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +35,12 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 180,
           "backgroundColor": "#08403F"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Fiji Rewards uses the camera to scan customer QR codes at the till."
         }
       ]
     ]

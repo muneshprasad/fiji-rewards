@@ -9,6 +9,8 @@ import {
 import PhoneScreen from './src/screens/PhoneScreen';
 import OtpScreen from './src/screens/OtpScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import TillApp from './src/till/TillApp';
+import { fetchStaff, StaffInfo } from './src/till/api';
 import { isConfigured, supabase } from './src/lib/supabase';
 import { colors, fonts } from './src/theme';
 
@@ -19,6 +21,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
+  const [staff, setStaff] = useState<StaffInfo | null>(null);
+  const [roleReady, setRoleReady] = useState(false);
 
   useEffect(() => {
     if (!isConfigured) { setReady(true); return; }
@@ -27,7 +31,14 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (!fontsLoaded || !ready) {
+  const userId = session?.user.id;
+  useEffect(() => {
+    setRoleReady(false);
+    if (!userId) { setStaff(null); return; }
+    fetchStaff(userId).then((st) => { setStaff(st); setRoleReady(true); });
+  }, [userId]);
+
+  if (!fontsLoaded || !ready || (session && !roleReady)) {
     return <View style={s.center}><ActivityIndicator color={colors.teal} /></View>;
   }
   if (!isConfigured) {
@@ -41,7 +52,7 @@ export default function App() {
   return (
     <>
       <StatusBar style="dark" />
-      {session ? <ProfileScreen userId={session.user.id} />
+      {session ? (staff ? <TillApp staff={staff} /> : <ProfileScreen userId={session.user.id} />)
         : pendingPhone ? <OtpScreen phone={pendingPhone} onBack={() => setPendingPhone(null)} />
         : <PhoneScreen onSent={setPendingPhone} />}
     </>
