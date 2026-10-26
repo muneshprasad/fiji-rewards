@@ -9,6 +9,7 @@ import { colors, fonts } from '../theme';
 import { CustomerInfo, earn, EarnResult, lookupCustomer, newTxnId, redeem, RedeemResult, StaffInfo } from './api';
 import ScanScreen from './ScanScreen';
 import QueueScreen from './QueueScreen';
+import { RewardsScreen, TodayScreen } from './ManageScreens';
 import { getDeviceId, saleQueue, syncNow, useQueuedSales } from './offline';
 
 type View_ =
@@ -19,6 +20,7 @@ type View_ =
   | { name: 'earned'; customer: CustomerInfo; amount: number; result: EarnResult }
   | { name: 'queued'; label: string; amount: number; estimate: number }
   | { name: 'queue' }
+  | { name: 'today' } | { name: 'rewards' }
   | { name: 'redeemed'; result: RedeemResult };
 
 export default function TillApp({ staff }: { staff: StaffInfo }) {
@@ -80,6 +82,10 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
       ]} onDone={home} />;
     case 'queue':
       return <QueueScreen onBack={home} />;
+    case 'today':
+      return <TodayScreen staff={staff} onBack={home} />;
+    case 'rewards':
+      return <RewardsScreen staff={staff} onBack={home} />;
     case 'earned':
       return <Done title="Sale recorded" lines={[
         `${view.customer.name ?? formatFijiPhone(view.customer.phone)}`, fjd(view.amount),
@@ -111,6 +117,13 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
             <View style={s.rule} />
             <Button title="Redeem a code" onPress={() => { setNotice(null); setView({ name: 'scan-code' }); }} />
           </View>
+          {staff.role === 'manager' ? (
+            <View style={{ gap: 12, marginTop: 24 }}>
+              <Text style={s.who}>Manager</Text>
+              <Button title="Today's numbers" variant="ghost" onPress={() => setView({ name: 'today' })} />
+              <Button title="Rewards and points rate" variant="ghost" onPress={() => setView({ name: 'rewards' })} />
+            </View>
+          ) : null}
           <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />
         </ScrollView>
       );
