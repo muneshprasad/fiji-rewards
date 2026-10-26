@@ -6,6 +6,8 @@ A shared loyalty wallet for Fiji. Earn points at any participating shop with one
 Build step 1 done: database schema, row-level security, seed data. Step 2 backend done: phone + SMS OTP config (Supabase auth with Twilio) and automatic customer profile with welcome bonus.
 
 ## Layout
+- `app/` Expo (React Native) app: phone + OTP login, profile with points balance. `cd app && npm install && npm test && npm run typecheck`
+- `brand/` logo source SVGs and PNGs (mark, adaptive-icon foreground, horizontal lockup)
 - `supabase/migrations/` schema, RLS, audit log
 - `supabase/seed.sql` 6 sample Nadi merchants with rewards
 - `supabase/tests/schema_test.sql` checks for balance, append-only transactions, idempotency, redemption codes, RLS
