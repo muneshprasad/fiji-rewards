@@ -1,0 +1,47 @@
+# Supabase local/CLI config for Fiji Rewards (phone + SMS OTP only, no email or password).
+project_id = "fiji-rewards"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "fijirewards://"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+template = "Your Fiji Rewards code is {{ .Code }}"
+max_frequency = "60s"
+
+# Twilio credentials come from the environment, never from this file.
+[auth.sms.twilio]
+enabled = true
+account_sid = "env(SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID)"
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+
+# Fixed codes for local development only (no SMS sent). Remove for production.
+[auth.sms.test_otp]
+6797000099 = "123456"
+
+[auth.rate_limit]
+sms_sent = 10
+token_verifications = 30

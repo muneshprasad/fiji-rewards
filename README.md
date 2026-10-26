@@ -3,7 +3,7 @@
 A shared loyalty wallet for Fiji. Earn points at any participating shop with one QR code, redeem at any member shop. See `CLAUDE.md` for the full brief and scope.
 
 ## Status
-Build step 1 done: database schema, row-level security, seed data.
+Build step 1 done: database schema, row-level security, seed data. Step 2 backend done: phone + SMS OTP config (Supabase auth with Twilio) and automatic customer profile with welcome bonus.
 
 ## Layout
 - `supabase/migrations/` schema, RLS, audit log
@@ -17,4 +17,4 @@ Build step 1 done: database schema, row-level security, seed data.
 - `transactions.client_txn_id` is the idempotency key for the offline queue.
 
 ## Running the schema tests
-On any Postgres 15+, stub Supabase's `auth.users` table, `auth.uid()` function and `authenticated` role, then run the migration, `seed.sql`, and `schema_test.sql` with `psql -v ON_ERROR_STOP=1`.
+On any Postgres 15+, run `supabase/tests/stub_supabase.sql` first (stand-ins for `auth.users`, `auth.uid()` and the `authenticated` role), then the migrations in order, `seed.sql`, `schema_test.sql` and `auth_test.sql`, each with `psql -v ON_ERROR_STOP=1`.
