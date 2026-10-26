@@ -1,12 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 400" width="1500" height="400">
-<g transform="scale(.375)"><rect width="1024" height="1024" rx="224" fill="#08403F"/>
-<circle cx="512" cy="512" r="400" fill="#F5B83D"/><g transform="translate(512 512)"><g fill="#0B6B6A">
-<ellipse cx="0" cy="-190" rx="105" ry="175" transform="rotate(0)"/>
-<ellipse cx="0" cy="-190" rx="105" ry="175" transform="rotate(72)"/>
-<ellipse cx="0" cy="-190" rx="105" ry="175" transform="rotate(144)"/>
-<ellipse cx="0" cy="-190" rx="105" ry="175" transform="rotate(216)"/>
-<ellipse cx="0" cy="-190" rx="105" ry="175" transform="rotate(288)"/></g>
-<circle r="62" fill="#F5B83D"/><circle r="62" fill="none" stroke="#08403F" stroke-width="10"/></g></g>
+<g transform="scale(.375)"><rect width="1024" height="1024" rx="224" fill="#08403F"/><circle cx="512" cy="512" r="420" fill="#F5B83D"/><circle cx="512" cy="512" r="388" fill="none" stroke="#08403F" stroke-opacity=".3" stroke-width="10"/><g fill="#08403F"><rect x="330" y="290" width="92" height="450" rx="46"/><path d="M376 300 C 560 250 720 290 790 410 C 690 360 560 356 376 390 Z"/><path d="M376 500 C 500 466 600 478 666 548 C 590 524 500 530 376 580 Z"/></g><circle cx="740" cy="720" r="34" fill="#0B6B6A"/></g>
 <text x="430" y="228" font-family="Plus Jakarta Sans, Arial, sans-serif" font-weight="800" font-size="150" fill="#0D2B2E">Fiji Rewards</text>
 <text x="436" y="305" font-family="Plus Jakarta Sans, Arial, sans-serif" font-weight="500" font-size="52" fill="#4A6568">One wallet. Every local shop.</text>
 </svg>
