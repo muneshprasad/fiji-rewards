@@ -36,6 +36,7 @@ Everything below needs accounts only you can create. Nothing here has been run a
 4. Test on a cheap Android phone, not only a new one.
 
 ## 6. Day-0 test (do all of it before inviting anyone)
+The full step-by-step, with a verification query and a troubleshooting table, is in [`docs/DAY0.md`](DAY0.md). In short:
 Use 2 phones: one as a customer, one as a cashier.
 1. Customer signs in with SMS code. Gets 20 welcome points. Name can be set in Account.
 2. Cashier signs in. The till opens (not the customer screens).

@@ -28,3 +28,21 @@ begin
   assert (select count(*) from transactions where customer_id = u) = 1, 'exactly one welcome bonus';
   raise notice 'auth tests passed';
 end $$;
+
+-- A person who signed in first and was added as staff afterwards is linked straight away.
+do $$
+declare
+  u uuid := gen_random_uuid(); sid uuid; late uuid;
+begin
+  insert into auth.users (id, phone) values (u, '6797310001');
+  insert into staff (merchant_id, name, phone, role) values ('00000000-0000-4000-8000-000000000002', 'Late Cashier', '+6797310001', 'cashier') returning id, user_id into sid, late;
+  assert late = u, 'staff added after sign-in is linked on insert';
+  assert (select user_id from staff where id = sid) = u;
+  -- changing the phone number to someone who has signed in links them too
+  insert into auth.users (id, phone) values (gen_random_uuid(), '6797310002');
+  insert into staff (merchant_id, name, phone, role) values ('00000000-0000-4000-8000-000000000002', 'Waiting', '+6797310003', 'cashier') returning id into sid;
+  assert (select user_id from staff where id = sid) is null, 'not linked while nobody has that number';
+  update staff set phone = '+6797310002' where id = sid;
+  assert (select user_id from staff where id = sid) is not null, 'linked when the phone is corrected';
+  raise notice 'late staff link tests passed';
+end $$;

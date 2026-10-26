@@ -9,4 +9,7 @@ $P -f supabase/pilot/pilot_setup.sql >/dev/null 2>/var/tmp/pilot_err.txt && echo
 sed 's/XXXXXX/700000/g' supabase/pilot/pilot_setup.sql > /var/tmp/pilot_filled.sql
 $P -f /var/tmp/pilot_filled.sql >/dev/null && $P -f /var/tmp/pilot_filled.sql >/dev/null && $P -f supabase/tests/pilot_check.sql 2>&1 | grep -v '^$'
 $P -f supabase/pilot/pilot_metrics.sql >/dev/null && echo "pilot metrics queries run: ok"
+# day-0 check: run against the customer and cashier created by the earlier tests
+sed "s/+6797001234/+6797400001/; s/+6797001235/+6797500001/; s/+6797001236/+6797600001/" supabase/pilot/day0_verify.sql > /var/tmp/day0.sql
+$P -f /var/tmp/day0.sql | head -20
 su postgres -s /bin/bash -c "$B/pg_ctl -D $D/data stop -m fast" >/dev/null
