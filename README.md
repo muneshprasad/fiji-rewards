@@ -3,7 +3,7 @@
 A shared loyalty wallet for Fiji. Earn points at any participating shop with one QR code, redeem at any member shop. See `CLAUDE.md` for the full brief and scope.
 
 ## Status
-Build step 1 done: database schema, row-level security, seed data. Step 2 backend done: phone + SMS OTP config (Supabase auth with Twilio) and automatic customer profile with welcome bonus.
+Steps 1-3 done: schema and RLS, phone OTP login with customer profile, and the transactions engine (earn, redeem, expire, balance as database functions).
 
 ## Layout
 - `app/` Expo (React Native) app: phone + OTP login, profile with points balance. `cd app && npm install && npm test && npm run typecheck`
