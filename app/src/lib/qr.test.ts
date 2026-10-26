@@ -41,5 +41,6 @@ test('friendly errors', () => {
 
 test('network errors are told apart from server errors', () => {
   assert.equal(isNetworkError({ message: 'TypeError: Network request failed' }), true);
+  assert.equal(isNetworkError({ message: 'AbortError: signal is aborted' }), true);
   assert.equal(isNetworkError({ message: 'sale_exceeds_max' }), false);
 });

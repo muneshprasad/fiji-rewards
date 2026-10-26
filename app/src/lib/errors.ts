@@ -28,5 +28,5 @@ export function friendlyError(err: { message?: string } | null | undefined, offl
 /** True when the request never reached the server (no signal), as opposed to the server refusing it. */
 export function isNetworkError(err: { message?: string } | null | undefined): boolean {
   const m = (err?.message ?? '').toLowerCase();
-  return m.includes('network request failed') || m.includes('failed to fetch') || m.includes('network error');
+  return ['network request failed', 'failed to fetch', 'network error', 'abort', 'timed out', 'timeout'].some((x) => m.includes(x));
 }

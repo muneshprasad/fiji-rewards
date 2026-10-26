@@ -19,14 +19,14 @@ declare
   m1 uuid := '00000000-0000-4000-8000-000000000001';  -- rate 1,   Bakehouse
   m2 uuid := '00000000-0000-4000-8000-000000000002';  -- rate 1,   Pharmacy
   m3 uuid := '00000000-0000-4000-8000-000000000003';  -- rate 1.5, Fresh Market
-  cu1 uuid := gen_random_uuid(); cu2 uuid := gen_random_uuid(); cu3 uuid := gen_random_uuid();
+  cu1 uuid := gen_random_uuid(); cu2 uuid := gen_random_uuid(); cu3 uuid := gen_random_uuid(); cu4 uuid := gen_random_uuid();
   st1 uuid := gen_random_uuid(); st2 uuid := gen_random_uuid(); st3 uuid := gen_random_uuid();
   r record;
   rw50 uuid; rw150 uuid; rw40 uuid;
   v_code text; v_code2 text;
   tx uuid;
 begin
-  insert into auth.users (id, phone) values (cu1,'6797400001'), (cu2,'6797400002'), (cu3,'6797400003');
+  insert into auth.users (id, phone) values (cu1,'6797400001'), (cu2,'6797400002'), (cu3,'6797400003'), (cu4,'6797400004');
   -- each customer starts with the 20-point welcome bonus
   insert into staff (merchant_id, user_id, name, phone) values
     (m1, null, 'Cashier 1', '+6797500001'), (m2, null, 'Cashier 2', '+6797500002'), (m3, null, 'Cashier 3', '+6797500003');
@@ -71,6 +71,14 @@ begin
   select * into r from record_earn(cu2, 20, gen_random_uuid(), 'till-offline', now() - interval '3 hours');
   assert (select created_at from transactions where id = r.transaction_id) < now() - interval '2 hours 59 minutes';
   assert (select expires_at from transactions where id = r.transaction_id) < now() - interval '3 hours' + interval '12 months' + interval '1 minute';
+
+  -- a till that was offline for almost 7 days: the old sale is accepted once, and re-sending it changes nothing
+  select * into r from record_earn(cu4, 40, '00000000-0000-4000-8000-0000000000c1', 'till-offline', now() - interval '6 days 23 hours');
+  assert r.points_earned = 40 and not r.duplicate, 'sale from just under 7 days ago is accepted';
+  assert (select expires_at from transactions where id = r.transaction_id) < now() - interval '6 days' + interval '12 months' + interval '1 hour', 'expiry counts from the sale time';
+  select * into r from record_earn(cu4, 40, '00000000-0000-4000-8000-0000000000c1', 'till-offline', now() - interval '6 days 23 hours');
+  assert r.duplicate and r.new_balance = 20 + 40, 'a re-sent offline sale is a duplicate';
+  assert (select count(*) from transactions where customer_id = cu4 and type = 'earn') = 1, 'only one sale was recorded';
 
   -- balance equals the ledger
   assert balance_of(cu1) = 20 + 30 + 5 + 5 + 10, 'cu1 balance sums the ledger';
