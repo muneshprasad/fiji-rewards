@@ -2,7 +2,7 @@
   "expo": {
     "name": "Fiji Rewards",
     "slug": "fiji-rewards",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,8 @@
       "permissions": [
         "CAMERA",
         "ACCESS_COARSE_LOCATION"
-      ]
+      ],
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -48,6 +49,19 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Fiji Rewards uses your location to show the nearest shops first."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": [
+              "arm64-v8a",
+              "armeabi-v7a"
+            ],
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
         }
       ]
     ]

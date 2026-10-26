@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { Button, ErrorNote, Field } from '../components/ui';
 import { formatFijiPhone } from '../lib/phone';
 import { supabase } from '../lib/supabase';
 import { colors, fonts } from '../theme';
 
-type Profile = { id: string; phone: string; name: string | null; language: string; referral_code: string };
+type Profile = { id: string; phone: string; name: string | null; language: string; referral_code: string; sms_receipts: boolean };
 
 export default function ProfileScreen({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -17,7 +17,7 @@ export default function ProfileScreen({ userId }: { userId: string }) {
 
   const load = useCallback(async () => {
     const [p, b] = await Promise.all([
-      supabase.from('customers').select('id, phone, name, language, referral_code').eq('id', userId).maybeSingle(),
+      supabase.from('customers').select('id, phone, name, language, referral_code, sms_receipts').eq('id', userId).maybeSingle(),
       supabase.from('customer_balances').select('balance').eq('customer_id', userId).maybeSingle(),
     ]);
     if (p.error) { setError('Could not load your profile. Pull to try again later.'); return; }
@@ -33,6 +33,13 @@ export default function ProfileScreen({ userId }: { userId: string }) {
     if (err) setError('Could not save your name.'); else setSaved(true);
   }
 
+  async function setReceipts(on: boolean) {
+    if (!profile) return;
+    setProfile({ ...profile, sms_receipts: on });
+    const { error: err } = await supabase.from('customers').update({ sms_receipts: on }).eq('id', userId);
+    if (err) { setProfile({ ...profile, sms_receipts: !on }); setError('Could not change this setting. Try again.'); }
+  }
+
   return (
     <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={s.wrap}>
       <View style={s.card}>
@@ -44,6 +51,14 @@ export default function ProfileScreen({ userId }: { userId: string }) {
       <ErrorNote message={error} />
       {saved ? <Text style={s.ok}>Saved.</Text> : null}
       <Button title="Save" onPress={save} loading={saving} />
+      <View style={s.row}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.rowTitle}>Text me a receipt</Text>
+          <Text style={s.rowSub}>An SMS after each sale or reward.</Text>
+        </View>
+        <Switch value={profile?.sms_receipts ?? true} onValueChange={setReceipts} disabled={!profile}
+          trackColor={{ true: colors.teal, false: colors.border }} accessibilityLabel="Text me a receipt" />
+      </View>
       <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />
     </ScrollView>
   );
@@ -55,5 +70,8 @@ const s = StyleSheet.create({
   cardLabel: { color: colors.white, fontFamily: fonts.medium, fontSize: 15 },
   points: { color: colors.gold, fontFamily: fonts.extraBold, fontSize: 56 },
   phone: { fontFamily: fonts.medium, color: colors.muted, fontSize: 15, marginBottom: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, marginTop: 12, paddingVertical: 8 },
+  rowTitle: { fontFamily: fonts.bold, fontSize: 16, color: colors.ink },
+  rowSub: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted },
   ok: { color: colors.teal, fontFamily: fonts.medium, marginBottom: 10 },
 });

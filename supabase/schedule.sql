@@ -9,3 +9,16 @@ select cron.schedule('detect-fraud', '*/15 * * * *', $$select detect_fraud()$$);
 --
 -- Make someone a network admin (so they see the Alerts tab and can suspend customers and shops):
 --   insert into network_admins (user_id) select id from auth.users where phone = '679XXXXXXX';
+
+-- Send SMS receipts every minute. Needs the pg_net extension and the send-receipts Edge Function deployed.
+-- Store the service role key in Vault once (never paste it into the cron command itself):
+--   select vault.create_secret('<your service role key>', 'service_role_key');
+-- Then replace YOUR-PROJECT-REF with your project's reference id:
+select cron.schedule('send-receipts', '* * * * *', $$
+  select net.http_post(
+    url := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/send-receipts',
+    headers := jsonb_build_object('Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')),
+    body := '{}'::jsonb
+  )
+$$);
