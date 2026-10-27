@@ -11,7 +11,7 @@
       },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://jwfdbfunrssdwhorxfaq.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3ZmRiZnVucnNzZHdob3J4ZmFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMzkzNjMsImV4cCI6MjEwODYxNTM2M30.3Nwxg95kf_cJELlhNutWoxZZspiZhV-XelieyIW3sdw"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_Saeiy9W3NMtzludNhBGl7Q_Vuc0AXVK"
       }
     },
     "production": {
