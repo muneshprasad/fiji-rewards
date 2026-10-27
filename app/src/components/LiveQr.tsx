@@ -14,7 +14,18 @@ export default function LiveQr({ userId, size = 240 }: { userId: string; size?: 
   const [secret, setSecret] = useState<string | null | undefined>(undefined);
   const [ts, setTs] = useState(serverEpochSeconds());
 
-  useEffect(() => { getQrSecret(userId).then(setSecret); }, [userId]);
+  // Look up the secret; if that fails (no signal yet, or a temporary error) keep trying every 4 seconds.
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    getQrSecret(userId).then((v) => { if (alive) setSecret(v); });
+    return () => { alive = false; };
+  }, [userId, attempt]);
+  useEffect(() => {
+    if (secret !== null) return;
+    const t = setInterval(() => setAttempt((n) => n + 1), 4000);
+    return () => clearInterval(t);
+  }, [secret]);
   useEffect(() => {
     const t = setInterval(() => setTs(serverEpochSeconds()), REFRESH_SECONDS * 1000);
     return () => clearInterval(t);
