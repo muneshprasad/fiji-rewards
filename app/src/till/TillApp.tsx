@@ -11,7 +11,7 @@ import { serverNow } from '../lib/clock';
 import { syncClock } from '../lib/clockSync';
 import ScanScreen from './ScanScreen';
 import QueueScreen from './QueueScreen';
-import { RewardsScreen, TodayScreen } from './ManageScreens';
+import { RewardsScreen, StatementsScreen, TodayScreen } from './ManageScreens';
 import { getDeviceId, saleQueue, syncNow, useQueuedSales } from './offline';
 
 type View_ =
@@ -22,7 +22,7 @@ type View_ =
   | { name: 'earned'; customer: CustomerInfo; amount: number; result: EarnResult }
   | { name: 'queued'; label: string; amount: number; estimate: number }
   | { name: 'queue' }
-  | { name: 'today' } | { name: 'rewards' }
+  | { name: 'today' } | { name: 'rewards' } | { name: 'statements' }
   | { name: 'redeemed'; result: RedeemResult };
 
 export default function TillApp({ staff }: { staff: StaffInfo }) {
@@ -89,6 +89,8 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
       return <TodayScreen staff={staff} onBack={home} />;
     case 'rewards':
       return <RewardsScreen staff={staff} onBack={home} />;
+    case 'statements':
+      return <StatementsScreen onBack={home} />;
     case 'earned':
       return <Done title="Sale recorded" lines={[
         `${view.customer.name ?? formatFijiPhone(view.customer.phone)}`, fjd(view.amount),
@@ -125,6 +127,7 @@ export default function TillApp({ staff }: { staff: StaffInfo }) {
               <Text style={s.who}>Manager</Text>
               <Button title="Today's numbers" variant="ghost" onPress={() => setView({ name: 'today' })} />
               <Button title="Rewards and points rate" variant="ghost" onPress={() => setView({ name: 'rewards' })} />
+              <Button title="Monthly statements" variant="ghost" onPress={() => setView({ name: 'statements' })} />
             </View>
           ) : null}
           <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { friendlyError, isNetworkError } from '../lib/errors';
 import { endTimestamp, RewardValues } from '../lib/manage';
+import type { SettlementRow } from '../lib/settlement';
 
 export type Today = {
   day: string; sales_count: number; sales_fjd: number; points_issued: number;
@@ -25,10 +26,21 @@ export async function fetchToday(): Promise<Res<Today>> {
   return { ok: true, data: { ...r, sales_fjd: Number(r.sales_fjd) } };
 }
 
-export async function fetchNetworkLimits(): Promise<{ min: number; max: number }> {
-  const { data } = await supabase.from('network_settings').select('key, value').in('key', ['min_points_per_fjd', 'max_points_per_fjd']);
+export async function fetchNetworkLimits(): Promise<{ min: number; max: number; pointValue: number }> {
+  const { data } = await supabase.from('network_settings').select('key, value').in('key', ['min_points_per_fjd', 'max_points_per_fjd', 'point_value_fjd']);
   const get = (k: string, d: number) => Number(data?.find((x) => x.key === k)?.value ?? d);
-  return { min: get('min_points_per_fjd', 0.5), max: get('max_points_per_fjd', 5) };
+  return { min: get('min_points_per_fjd', 0.5), max: get('max_points_per_fjd', 5), pointValue: get('point_value_fjd', 0.01) };
+}
+
+export async function fetchMyStatements(): Promise<SettlementRow[] | null> {
+  const { data, error } = await supabase.from('settlements')
+    .select('id, month, merchant_id, points_issued, points_redeemed, issue_charge, reimbursement, monthly_fee, net_amount, status, issued_at, paid_at, note')
+    .order('month', { ascending: false }).limit(12);
+  if (error) return null;
+  return (data as unknown as SettlementRow[]).map((r) => ({
+    ...r, merchant: null, issue_charge: Number(r.issue_charge), reimbursement: Number(r.reimbursement),
+    monthly_fee: Number(r.monthly_fee), net_amount: Number(r.net_amount),
+  }));
 }
 
 export async function fetchRewards(merchantId: string): Promise<Res<ManagedReward[]>> {

@@ -59,7 +59,7 @@ export default function AdminScreen() {
 }
 
 const s = StyleSheet.create({
-  wrap: { padding: 20, paddingTop: 56, gap: 10 },
+  wrap: { padding: 20, paddingTop: 8, gap: 10 },
   title: { fontFamily: fonts.extraBold, fontSize: 28, color: colors.ink },
   sub: { fontFamily: fonts.regular, fontSize: 15, color: colors.muted, marginTop: 2 },
   card: { backgroundColor: colors.white, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.border },

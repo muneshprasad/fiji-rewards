@@ -4,7 +4,7 @@ import type { Deal } from '../lib/deals';
 import ProfileScreen from '../screens/ProfileScreen';
 import { colors, fonts, MIN_TOUCH } from '../theme';
 import { fetchBalance } from './api';
-import AdminScreen from '../admin/AdminScreen';
+import AdminHome from '../admin/AdminHome';
 import { amAdmin } from '../admin/api';
 import DealsScreen from './DealsScreen';
 import HistoryScreen from './HistoryScreen';
@@ -39,10 +39,10 @@ export default function CustomerApp({ userId }: { userId: string }) {
         {tab === 'deals' && <DealsScreen onOpen={setDeal} />}
         {tab === 'history' && <HistoryScreen userId={userId} />}
         {tab === 'account' && <ProfileScreen userId={userId} />}
-        {tab === 'alerts' && <AdminScreen />}
+        {tab === 'alerts' && <AdminHome />}
       </View>
       <View style={s.bar} accessibilityRole="tablist">
-        {(admin ? [...TABS, { key: 'alerts' as Tab, label: 'Alerts' }] : TABS).map((t) => (
+        {(admin ? [...TABS, { key: 'alerts' as Tab, label: 'Admin' }] : TABS).map((t) => (
           <Pressable key={t.key} onPress={() => setTab(t.key)} accessibilityRole="tab" accessibilityState={{ selected: tab === t.key }} style={s.tab}>
             <Text style={[s.label, tab === t.key && s.on]}>{t.label}</Text>
           </Pressable>

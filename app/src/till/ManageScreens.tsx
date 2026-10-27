@@ -5,7 +5,8 @@ import { fjd } from '../lib/money';
 import { parseRate, rewardStatus, validateReward, RewardErrors } from '../lib/manage';
 import { colors, fonts } from '../theme';
 import type { StaffInfo } from './api';
-import { endReward, fetchNetworkLimits, fetchRewards, fetchToday, ManagedReward, saveRate, saveReward, Today } from './manage';
+import { describeNet, monthLabel, STATUS_LABEL, suggestedPoints, SettlementRow } from '../lib/settlement';
+import { endReward, fetchMyStatements, fetchNetworkLimits, fetchRewards, fetchToday, ManagedReward, saveRate, saveReward, Today } from './manage';
 
 export function TodayScreen({ staff, onBack }: { staff: StaffInfo; onBack: () => void }) {
   const [data, setData] = useState<Today | null>(null);
@@ -49,7 +50,7 @@ const blank: Draft = { id: null, title: '', points: '', value: '', dailyLimit: '
 export function RewardsScreen({ staff, onBack }: { staff: StaffInfo; onBack: () => void }) {
   const merchantId = staff.merchant.id;
   const [rewards, setRewards] = useState<ManagedReward[] | null>(null);
-  const [limits, setLimits] = useState({ min: 0.5, max: 5 });
+  const [limits, setLimits] = useState({ min: 0.5, max: 5, pointValue: 0.01 });
   const [rate, setRate] = useState(String(staff.merchant.points_per_fjd));
   const [rateMsg, setRateMsg] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -93,6 +94,12 @@ export function RewardsScreen({ staff, onBack }: { staff: StaffInfo; onBack: () 
         <Field label="Name" value={draft.title} onChangeText={(t) => setDraft({ ...draft, title: t })} error={errors.title} placeholder="Free coffee" />
         <Field label="Points it costs" value={draft.points} onChangeText={(t) => setDraft({ ...draft, points: t })} keyboardType="number-pad" error={errors.points} />
         <Field label="Worth (FJD)" value={draft.value} onChangeText={(t) => setDraft({ ...draft, value: t })} keyboardType="decimal-pad" error={errors.value} />
+        {Number(draft.value.replace(',', '.')) > 0 ? (
+          <Text style={s.hint}>
+            The network repays you FJD {limits.pointValue} for every point spent. A reward worth FJD {Number(draft.value.replace(',', '.'))} matches about{' '}
+            {suggestedPoints(Number(draft.value.replace(',', '.')), limits.pointValue)} points. Fewer points than that means you give more than you are repaid.
+          </Text>
+        ) : null}
         <Field label="Limit per day (optional)" value={draft.dailyLimit} onChangeText={(t) => setDraft({ ...draft, dailyLimit: t })} keyboardType="number-pad" error={errors.dailyLimit} />
         <ErrorNote message={error} />
         <Button title="Save reward" onPress={submit} loading={busy} />
@@ -131,7 +138,38 @@ export function RewardsScreen({ staff, onBack }: { staff: StaffInfo; onBack: () 
   );
 }
 
+export function StatementsScreen({ onBack }: { onBack: () => void }) {
+  const [rows, setRows] = useState<SettlementRow[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { fetchMyStatements().then((r) => { setRows(r); setFailed(r === null); }); }, []);
+  return (
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={s.wrap}>
+      <Text style={s.title}>Monthly statements</Text>
+      <Text style={s.sub}>What you owe the network for points you gave out, less what the network repays you for rewards your customers used.</Text>
+      {failed ? <ErrorNote message="Could not load statements. Check your connection." /> : null}
+      {!rows && !failed ? <ActivityIndicator color={colors.teal} /> : null}
+      {rows?.length === 0 ? <Text style={s.sub}>No statements yet. The first one appears after the month ends.</Text> : null}
+      {rows?.map((r) => {
+        const net = describeNet(r.net_amount);
+        return (
+          <View key={r.id} style={s.card}>
+            <Text style={s.name}>{monthLabel(r.month)}</Text>
+            <Text style={[s.netBig, net.tone === 'receive' && { color: colors.teal }]}>{net.text}</Text>
+            <Text style={s.sub}>Points you issued: {r.points_issued} (charge {fjd(r.issue_charge)})</Text>
+            <Text style={s.sub}>Points redeemed at your shop: {r.points_redeemed} (repaid {fjd(r.reimbursement)})</Text>
+            {r.monthly_fee > 0 ? <Text style={s.sub}>Monthly fee: {fjd(r.monthly_fee)}</Text> : null}
+            <Text style={s.sub}>{STATUS_LABEL[r.status]}{r.paid_at ? ` on ${r.paid_at.slice(0, 10)}` : ''}</Text>
+          </View>
+        );
+      })}
+      <Button title="Back" variant="ghost" onPress={onBack} />
+    </ScrollView>
+  );
+}
+
 const s = StyleSheet.create({
+  netBig: { fontFamily: fonts.extraBold, fontSize: 20, color: colors.ink, marginVertical: 4 },
+  hint: { fontFamily: fonts.regular, fontSize: 13, color: colors.muted, marginBottom: 14 },
   wrap: { padding: 24, paddingTop: 56, gap: 8 },
   title: { fontFamily: fonts.extraBold, fontSize: 26, color: colors.ink },
   sub: { fontFamily: fonts.regular, fontSize: 15, color: colors.muted, marginTop: 2 },

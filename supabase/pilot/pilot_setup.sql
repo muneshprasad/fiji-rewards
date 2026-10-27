@@ -3,6 +3,7 @@
 --
 -- BEFORE YOU RUN IT, edit the two blocks marked EDIT. Safe to run again: it updates instead of duplicating.
 -- Business names, categories, addresses and rewards below are SAMPLE content: replace them with the real ones.
+-- Price each reward at the network's point value (FJD 0.01 per point): a FJD 3 reward = 300 points. See docs/ECONOMICS.md.
 
 do $$
 declare
@@ -18,8 +19,8 @@ declare
       "owner":   { "name": "Owner One",   "phone": "+679XXXXXX1" },
       "cashier": { "name": "Cashier One", "phone": "+679XXXXXX2" },
       "rewards": [
-        { "title": "Free pastry",         "points": 50,  "value": 3.00,  "daily": 20 },
-        { "title": "FJD 10 off a cake",   "points": 150, "value": 10.00, "daily": 5 }
+        { "title": "Free pastry",         "points": 300,  "value": 3.00,  "daily": 20 },
+        { "title": "FJD 10 off a cake",   "points": 1000, "value": 10.00, "daily": 5 }
       ]
     },
     {
@@ -28,7 +29,7 @@ declare
       "owner":   { "name": "Owner Two",   "phone": "+679XXXXXX3" },
       "cashier": { "name": "Cashier Two", "phone": "+679XXXXXX4" },
       "rewards": [
-        { "title": "FJD 5 off any purchase", "points": 100, "value": 5.00, "daily": 10 }
+        { "title": "FJD 5 off any purchase", "points": 500, "value": 5.00, "daily": 10 }
       ]
     },
     {
@@ -37,7 +38,7 @@ declare
       "owner":   { "name": "Owner Three",   "phone": "+679XXXXXX5" },
       "cashier": { "name": "Cashier Three", "phone": "+679XXXXXX6" },
       "rewards": [
-        { "title": "FJD 8 off over FJD 50", "points": 120, "value": 8.00, "daily": 8 }
+        { "title": "FJD 8 off over FJD 50", "points": 800, "value": 8.00, "daily": 8 }
       ]
     }
   ]$json$::jsonb;
