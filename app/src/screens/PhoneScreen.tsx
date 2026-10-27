@@ -16,7 +16,11 @@ export default function PhoneScreen({ onSent }: { onSent: (phone: string) => voi
     setError(null); setLoading(true);
     const { error: err } = await supabase.auth.signInWithOtp({ phone });
     setLoading(false);
-    if (err) { setError('We could not send the code. Check your number and try again.'); return; }
+    if (err) {
+      // While testing (Expo Go or a dev build) show the real reason so problems can be diagnosed.
+      setError('We could not send the code. Check your number and try again.' + (__DEV__ ? `\n\n[test info] ${err.message}${err.status ? ` (status ${err.status})` : ''}` : ''));
+      return;
+    }
     onSent(phone);
   }
 

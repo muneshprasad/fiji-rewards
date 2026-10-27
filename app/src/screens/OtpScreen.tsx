@@ -24,7 +24,7 @@ export default function OtpScreen({ phone, onBack }: { phone: string; onBack: ()
     setError(null); setLoading(true);
     const { error: err } = await supabase.auth.verifyOtp({ phone, token: code, type: 'sms' });
     setLoading(false);
-    if (err) setError('That code did not work. Check it and try again.');
+    if (err) setError('That code did not work. Check it and try again.' + (__DEV__ ? `\n\n[test info] ${err.message}` : ''));
     // On success the auth listener in App moves to the profile.
   }
 
