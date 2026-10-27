@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import type { Session } from '@supabase/supabase-js';
 import {
   PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
+import AnimatedSplash from './src/components/AnimatedSplash';
 import PhoneScreen from './src/screens/PhoneScreen';
 import OtpScreen from './src/screens/OtpScreen';
 import CustomerApp from './src/customer/CustomerApp';
@@ -14,8 +16,11 @@ import { fetchStaff, StaffInfo } from './src/till/api';
 import { isConfigured, supabase } from './src/lib/supabase';
 import { colors, fonts } from './src/theme';
 
+// Keep the still splash image up until the animated one takes over (it hides the still one itself).
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular, PlusJakartaSans_500Medium, PlusJakartaSans_700Bold, PlusJakartaSans_800ExtraBold,
   });
   const [session, setSession] = useState<Session | null>(null);
@@ -23,6 +28,7 @@ export default function App() {
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
   const [staff, setStaff] = useState<StaffInfo | null>(null);
   const [roleReady, setRoleReady] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
     if (!isConfigured) { setReady(true); return; }
@@ -38,24 +44,35 @@ export default function App() {
     fetchStaff(userId).then((st) => { setStaff(st); setRoleReady(true); });
   }, [userId]);
 
-  if (!fontsLoaded || !ready || (session && !roleReady)) {
-    return <View style={s.center}><ActivityIndicator color={colors.teal} /></View>;
-  }
-  if (!isConfigured) {
-    return (
+  const fontsOk = fontsLoaded || Boolean(fontError);
+  const appReady = fontsOk && ready && !(session && !roleReady);
+
+  let content: React.ReactNode;
+  if (!appReady) {
+    content = <View style={s.center}><ActivityIndicator color={colors.teal} /></View>;
+  } else if (!isConfigured) {
+    content = (
       <View style={s.center}>
         <Text style={s.msg}>Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY (see app/.env.example).</Text>
       </View>
     );
+  } else {
+    content = (
+      <>
+        <StatusBar style="dark" />
+        {session ? (staff ? <TillApp staff={staff} /> : <CustomerApp userId={session.user.id} />)
+          : pendingPhone ? <OtpScreen phone={pendingPhone} onBack={() => setPendingPhone(null)} />
+          : <PhoneScreen onSent={setPendingPhone} />}
+      </>
+    );
   }
 
+  // The app loads underneath the splash, which fades out once it is ready.
   return (
-    <>
-      <StatusBar style="dark" />
-      {session ? (staff ? <TillApp staff={staff} /> : <CustomerApp userId={session.user.id} />)
-        : pendingPhone ? <OtpScreen phone={pendingPhone} onBack={() => setPendingPhone(null)} />
-        : <PhoneScreen onSent={setPendingPhone} />}
-    </>
+    <View style={{ flex: 1 }}>
+      {content}
+      {fontsOk && !splashDone ? <AnimatedSplash ready={appReady} onDone={() => setSplashDone(true)} /> : null}
+    </View>
   );
 }
 

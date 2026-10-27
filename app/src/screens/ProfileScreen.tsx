@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button, ErrorNote, Field } from '../components/ui';
+import { SPLASH_SEEN_KEY } from '../lib/splash';
 import { formatFijiPhone } from '../lib/phone';
 import { supabase } from '../lib/supabase';
 import { colors, fonts } from '../theme';
@@ -59,6 +61,10 @@ export default function ProfileScreen({ userId }: { userId: string }) {
         <Switch value={profile?.sms_receipts ?? true} onValueChange={setReceipts} disabled={!profile}
           trackColor={{ true: colors.teal, false: colors.border }} accessibilityLabel="Text me a receipt" />
       </View>
+      {__DEV__ ? (
+        <Button title="Test: replay the intro next time" variant="ghost"
+          onPress={async () => { await AsyncStorage.removeItem(SPLASH_SEEN_KEY); setSaved(false); setError('Close the app completely and open it again to see the full intro.'); }} />
+      ) : null}
       <Button title="Sign out" variant="ghost" onPress={() => supabase.auth.signOut()} />
     </ScrollView>
   );
