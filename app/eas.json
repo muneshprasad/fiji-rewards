@@ -18,6 +18,20 @@
       "android": {
         "buildType": "app-bundle"
       }
+    },
+    "testflight": {
+      "distribution": "store",
+      "autoIncrement": true,
+      "ios": {},
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://jwfdbfunrssdwhorxfaq.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_Saeiy9W3NMtzludNhBGl7Q_Vuc0AXVK"
+      }
+    }
+  },
+  "submit": {
+    "testflight": {
+      "ios": {}
     }
   }
 }
