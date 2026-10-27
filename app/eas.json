@@ -1,13 +1,23 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
   "build": {
     "pilot": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_SUPABASE_URL": "SET-IN-EAS-ENVIRONMENT", "EXPO_PUBLIC_SUPABASE_ANON_KEY": "SET-IN-EAS-ENVIRONMENT" }
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://jwfdbfunrssdwhorxfaq.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "PASTE-ANON-KEY-HERE"
+      }
     },
     "production": {
-      "android": { "buildType": "app-bundle" }
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   }
 }
