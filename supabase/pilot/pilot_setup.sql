@@ -11,11 +11,13 @@ declare
   s jsonb;
   r jsonb;
   mid uuid;
-  -- EDIT: one entry per shop below. owner = manager (sees Today and rewards setup), cashier = till only.
+  -- EDIT: one entry per shop below. "tin" is the shop's tax number as printed on its VMS receipts (digits only; leave empty until you know it).
+  -- A shop with no tax number cannot take receipt claims.
+  -- owner = manager (sees Today and rewards setup), cashier = till only.
   shops jsonb := $json$[
     {
       "name": "Nadi Fresh Bakery", "category": "Food & drink", "town": "Nadi", "address": "Main Street, Nadi",
-      "lat": -17.8050, "lng": 177.4160, "rate": 1,
+      "lat": -17.8050, "lng": 177.4160, "rate": 1, "tin": "",
       "owner":   { "name": "Owner One",   "phone": "+679XXXXXX1" },
       "cashier": { "name": "Cashier One", "phone": "+679XXXXXX2" },
       "rewards": [
@@ -25,7 +27,7 @@ declare
     },
     {
       "name": "Sunrise Pharmacy", "category": "Health", "town": "Nadi", "address": "Queens Road, Nadi",
-      "lat": -17.8030, "lng": 177.4170, "rate": 1,
+      "lat": -17.8030, "lng": 177.4170, "rate": 1, "tin": "",
       "owner":   { "name": "Owner Two",   "phone": "+679XXXXXX3" },
       "cashier": { "name": "Cashier Two", "phone": "+679XXXXXX4" },
       "rewards": [
@@ -34,7 +36,7 @@ declare
     },
     {
       "name": "Bula Hardware", "category": "Home & garden", "town": "Nadi", "address": "Sagayam Road, Nadi",
-      "lat": -17.8040, "lng": 177.4180, "rate": 1,
+      "lat": -17.8040, "lng": 177.4180, "rate": 1, "tin": "",
       "owner":   { "name": "Owner Three",   "phone": "+679XXXXXX5" },
       "cashier": { "name": "Cashier Three", "phone": "+679XXXXXX6" },
       "rewards": [
@@ -53,13 +55,14 @@ begin
 
     select id into mid from merchants where business_name = m->>'name' and town = m->>'town';
     if mid is null then
-      insert into merchants (business_name, category, town, address, lat, lng, owner_phone, points_per_fjd, status)
+      insert into merchants (business_name, category, town, address, lat, lng, owner_phone, points_per_fjd, status, tin)
       values (m->>'name', m->>'category', m->>'town', m->>'address', (m->>'lat')::float, (m->>'lng')::float,
-              m->'owner'->>'phone', (m->>'rate')::numeric, 'active')
+              m->'owner'->>'phone', (m->>'rate')::numeric, 'active', nullif(regexp_replace(coalesce(m->>'tin', ''), '[^0-9]', '', 'g'), ''))
       returning id into mid;
     else
       update merchants set category = m->>'category', address = m->>'address', lat = (m->>'lat')::float, lng = (m->>'lng')::float,
-             owner_phone = m->'owner'->>'phone', points_per_fjd = (m->>'rate')::numeric, status = 'active' where id = mid;
+             owner_phone = m->'owner'->>'phone', points_per_fjd = (m->>'rate')::numeric, status = 'active',
+             tin = coalesce(nullif(regexp_replace(coalesce(m->>'tin', ''), '[^0-9]', '', 'g'), ''), tin) where id = mid;
     end if;
 
     insert into staff (merchant_id, name, phone, role) values (mid, m->'owner'->>'name', m->'owner'->>'phone', 'manager')
