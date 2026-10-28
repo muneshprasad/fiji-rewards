@@ -31,7 +31,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "node --test src/lib/*.test.ts ../supabase/functions/send-receipts/*.test.ts",
+    "test": "node --test src/lib/*.test.ts ../supabase/functions/*/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "private": true

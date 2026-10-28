@@ -45,3 +45,7 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 [auth.rate_limit]
 sms_sent = 10
 token_verifications = 30
+
+# POS systems call this with the shop's own API key (not a Supabase login), so the JWT check is off.
+[functions.pos-gateway]
+verify_jwt = false

@@ -21,6 +21,9 @@ Steps 1-9 done: schema and RLS, phone OTP login, the transactions engine, the me
 ## Running the schema tests
 On any Postgres 15+, run `supabase/tests/stub_supabase.sql` first (stand-ins for `auth.users`, `auth.uid()` and the `authenticated` role), then the migrations in order, `seed.sql`, `schema_test.sql` and `auth_test.sql`, each with `psql -v ON_ERROR_STOP=1`.
 
+## POS integration
+POS systems such as Fisko POS credit points through the POS gateway (`supabase/functions/pos-gateway`, reference in `docs/POS_API.md`, instructions for the POS developer in `docs/FISKO_POS_PROMPT.md`).
+
 ## Splash
 The app opens with an animated splash built in code (`app/src/components/AnimatedSplash.tsx`, timings in `app/src/lib/splash.ts`): the first launch plays the full 3.5 seconds, later launches a short 1.2 second version, and people who use "reduce motion" get a brief fade. Tap to skip. It waits for the app to be ready before fading out.
 
